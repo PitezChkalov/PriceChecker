@@ -23,6 +23,16 @@ public class Jewelry {
     private String barCode;
     private String category;
     private Integer cost;
+
+    public String getWeight() {
+        return weight;
+    }
+
+    public void setWeight(String weight) {
+        this.weight = weight;
+    }
+
+    private String weight;
     private String description;
     private Double discount;
 
@@ -38,10 +48,11 @@ public class Jewelry {
         this.discount = 0.0;
 
     }
-    public Jewelry(String barCode, String article, String category, String description, Integer cost) {
+    public Jewelry(String barCode, String article, String category, String description, Integer cost, String weight) {
         this.barCode = barCode;
         this.article = article;
         this.category = category;
+        this.weight = weight;
         this.description = description;
         this.cost = cost;
         this.discount = 0.0;

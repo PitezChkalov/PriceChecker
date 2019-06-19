@@ -9,11 +9,4 @@
         android:orderInCategory="101"
         android:title="Скидка"
         app:showAsAction="always" />
-        <item
-            android:id="@+id/send"
-            android:orderInCategory="100"
-            app:showAsAction="always"
-            android:actionLayout="@layout/activity_main"
-            android:icon="@drawable/letter_red"
-            android:title="Отправить" />
     </group></menu>

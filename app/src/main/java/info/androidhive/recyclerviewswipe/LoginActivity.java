@@ -27,7 +27,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     EditText password;
     String mPassword;
     String mLogin;
-    ImageButton RegButton;
+    Button RegButton;
     Button EnterButton;
     ProgressBar progressBar;
 
@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         progressBar = (ProgressBar)findViewById(R.id.progressBar2);
         EnterButton  = (Button) findViewById(R.id.sign_in_button);
         EnterButton.setOnClickListener(this);
-        RegButton = (ImageButton)findViewById(R.id.imageButton6);
+        RegButton = (Button) findViewById(R.id.imageButton6);
         RegButton.setOnClickListener(this);
 
 

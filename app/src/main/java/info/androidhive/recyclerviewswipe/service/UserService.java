@@ -71,7 +71,7 @@ public class UserService implements IUserService {
             Object user = new User(username, password, true);
             HttpEntity<Object> request = new HttpEntity<Object>(user);
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "http://gimbarrwow2.azurewebsites.net" + "/user/add", request, String.class);
+                    "https://baltsilverapp.herokuapp.com/" + "/user/add", request, String.class);
             HttpStatus status = response.getStatusCode();
             if (status == HttpStatus.CREATED)
                 return "OK";
@@ -91,7 +91,7 @@ public class UserService implements IUserService {
             RestTemplate restTemplate = getRestTemplate();
 
             HttpEntity<String> request = new HttpEntity<String>(getHeaders(context));
-            ResponseEntity<User> response = restTemplate.exchange("http://gimbarrwow2.azurewebsites.net" +
+            ResponseEntity<User> response = restTemplate.exchange("https://baltsilverapp.herokuapp.com/" +
                     "/user/user/"+ barCode, HttpMethod.GET, request, User.class);
             User user = response.getBody();
             System.out.println(user);
@@ -106,7 +106,7 @@ public class UserService implements IUserService {
 
             HttpEntity<Object> request = new HttpEntity<Object>(login);
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "http://gimbarrwow2.azurewebsites.net" + "/user/login", request, String.class);
+                    "https://baltsilverapp.herokuapp.com/" + "/user/login", request, String.class);
             HttpStatus status = response.getStatusCode();
                 return true;
         }
@@ -122,7 +122,7 @@ public class UserService implements IUserService {
         RestTemplate restTemplate = getRestTemplate();
 
         HttpEntity<String> request = new HttpEntity<String>(getHeaders(context));
-        ResponseEntity<Jewelry> response = restTemplate.exchange("http://gimbarrwow2.azurewebsites.net" +
+        ResponseEntity<Jewelry> response = restTemplate.exchange("https://baltsilverapp.herokuapp.com/" +
                 "/jewelry/get/"+ barCode, HttpMethod.GET, request, Jewelry.class);
         Jewelry jewelry = response.getBody();
         System.out.println(jewelry);
@@ -137,7 +137,7 @@ public class UserService implements IUserService {
 
             HttpEntity<Object> request = new HttpEntity<Object>(order, getHeaders(context));
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "http://gimbarrwow2.azurewebsites.net" + "/jewelry/sendOrder", request, String.class);
+                    "https://baltsilverapp.herokuapp.com/" + "/jewelry/sendOrder", request, String.class);
             HttpStatus status = response.getStatusCode();
             return status;
         }

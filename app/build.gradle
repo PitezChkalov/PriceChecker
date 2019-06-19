@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "info.androidhive.recyclerviewswipe"
         minSdkVersion 21
@@ -39,6 +39,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:3.7.0'
     implementation 'com.android.volley:volley:1.0.0'
     compile 'com.google.code.gson:gson:2.2.+'
+    implementation 'commons-net:commons-net:3.6'
     compile 'org.springframework.android:spring-android-rest-template:1.0.1.RELEASE'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
     compile 'me.dm7.barcodescanner:zxing:1.8.4'

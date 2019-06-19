@@ -3,4 +3,9 @@
     <string name="action_settings">Настройки</string>
     <string name="my_cart">Корзина</string>
     <string name="delete">УДАЛИТЬ</string>
+
+    <string-array name="chose_items">
+        <item>Опт</item>
+        <item>Розница</item>
+    </string-array>
 </resources>

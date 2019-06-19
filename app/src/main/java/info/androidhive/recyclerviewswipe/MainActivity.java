@@ -1,9 +1,13 @@
 package info.androidhive.recyclerviewswipe;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -33,6 +37,7 @@ import com.google.zxing.integration.android.IntentResult;
 
 import org.springframework.http.HttpStatus;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +45,10 @@ import info.androidhive.baltsilverapp.R;
 import info.androidhive.recyclerviewswipe.adapter.CartListAdapter;
 import info.androidhive.recyclerviewswipe.adapter.RecyclerItemTouchHelper;
 import info.androidhive.recyclerviewswipe.entity.Jewelry;
+import info.androidhive.recyclerviewswipe.service.FTPService;
 import info.androidhive.recyclerviewswipe.service.IUserService;
 import info.androidhive.recyclerviewswipe.service.UserService;
+import info.androidhive.recyclerviewswipe.service.UserServiceXML;
 
 
 public class MainActivity extends AppCompatActivity implements RecyclerItemTouchHelper.RecyclerItemTouchHelperListener {
@@ -53,26 +60,34 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
     private CoordinatorLayout coordinatorLayout;
     private IUserService userService = new UserService();
     private EditText userInput;
+    public static Double priceMultiply = 1.0;
     public Double disc;
     public String user = "";
     final Context context = this;
     ProgressBar progressBar;
+    UserServiceXML userServiceXML;
+    List<Jewelry> jewelries;
     // url to fetch menu json
     private static final String URL = "https://api.androidhive.info/json/menu.json";
     View promptsView;
 
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        progressBar.setVisibility(View.INVISIBLE);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         LayoutInflater li = LayoutInflater.from(getApplicationContext());
         promptsView = li.inflate(R.layout.prompt, null);
         setUser();
-
-          disc = new Double(0);
+        userServiceXML = new UserServiceXML(this);
+        disc = new Double(0);
         recyclerView = findViewById(R.id.recycler_view);
         coordinatorLayout = findViewById(R.id.coordinator_layout);
         cartList = new ArrayList<>();
@@ -83,13 +98,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
                setDiscount(position);
             }
         });
-
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         recyclerView.setAdapter(mAdapter);
-
 
 
         // adding item touch helper
@@ -158,25 +171,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
   public void setUser(){
       LayoutInflater li = LayoutInflater.from(context);
       View qwe = li.inflate(R.layout.set_user, null);
-      AlertDialog.Builder builder =
-              new AlertDialog.Builder(context, R.style.AppCompatAlertDialogStyle);
-      builder.setView(qwe);
-      userInput = (EditText) qwe.findViewById(R.id.input_text);
-      builder.setCancelable(false);
-      builder.setPositiveButton("Применить",
-              new DialogInterface.OnClickListener() {
-                  public void onClick(DialogInterface dialog,int id) {
-                      //Вводим текст и отображаем в строке ввода на основном экране:
-                      user = userInput.getText().toString();
-                      Toolbar toolbar = findViewById(R.id.toolbar);
-                      setSupportActionBar(toolbar);
-                      getSupportActionBar().setTitle("Клиент: "+ user);
-                  }
-              });
-      AlertDialog alertDialog = builder.create();
-      alertDialog.show();
 
-
+      //Вводим текст и отображаем в строке ввода на основном экране:
+      Toolbar toolbar = findViewById(R.id.toolbar);
+      setSupportActionBar(toolbar);
+      //getSupportActionBar().setLogo(R.drawable.logo);
   }
     /**
      * method make volley network call and parses json
@@ -184,10 +183,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
     public void prepareCart(View v) {
 
         IntentIntegrator integrator = new IntentIntegrator(this);
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.PRODUCT_CODE_TYPES);
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES);
         integrator.setPrompt("Scan");
         integrator.setCameraId(0);
         integrator.setBeepEnabled(true);
+        integrator.setCaptureActivity(info.androidhive.recyclerviewswipe.CaptureActivityPortrait.class);
         integrator.setBarcodeImageEnabled(true);
         integrator.initiateScan();
 
@@ -209,10 +209,17 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
                 if (result != null && result.getContents().length()> 12) {
                     if (result.getContents() != null) {
                   Log.i("TAG", result.getContents());
-                  cartList.add(userService.getJewelry(result.getContents(), getApplicationContext()));
-                  mAdapter.notifyDataSetChanged();
-
-            }
+                      Jewelry newJewelry = userServiceXML.findJewelry(result.getContents());
+                      if(newJewelry!=null) {
+                          cartList.add(newJewelry);
+                          mAdapter.notifyDataSetChanged();
+                      }
+                      else {
+                      Snackbar snackbar = Snackbar
+                              .make(coordinatorLayout, " Изделие не найдено!", Snackbar.LENGTH_SHORT);
+                      snackbar.setActionTextColor(Color.YELLOW);
+                      snackbar.show();
+                  }}
                     else{
                         Toast toast = Toast.makeText(getApplicationContext(),
                                 "No scan data received!", Toast.LENGTH_SHORT);
@@ -274,13 +281,37 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
-        if(mAdapter.getTotalCost()!= 0){
         if(item.getItemId()==R.id.sale) {
-            LayoutInflater li = LayoutInflater.from(context);
+
+            AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+            mBuilder.setTitle("Выберите тип цены");
+            String[] listItems = getResources().getStringArray(R.array.chose_items);
+            int kkk = 0;
+            if(priceMultiply == 2.2)
+                kkk = 1;
+            mBuilder.setSingleChoiceItems(listItems, kkk, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                  if(i == 0){
+                      priceMultiply = 1.0;
+                      mAdapter.notifyDataSetChanged();
+                  }
+                  else {
+                      priceMultiply = 2.2;
+                      mAdapter.notifyDataSetChanged();
+                  }
+                    dialogInterface.dismiss();
+                }
+            });
+
+            AlertDialog mDialog = mBuilder.create();
+            mDialog.show();
+            /*LayoutInflater li = LayoutInflater.from(context);
             View qwe = li.inflate(R.layout.prompt, null);
             AlertDialog.Builder builder =
                     new AlertDialog.Builder(context, R.style.AppCompatAlertDialogStyle);
             builder.setView(qwe);
+            builder.setSingleChoiceItems()
             userInput = (EditText) qwe.findViewById(R.id.input_text);
 
             builder.setPositiveButton("Применить",
@@ -308,9 +339,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
                                 }
                             });
             AlertDialog alertDialog = builder.create();
-            alertDialog.show();
+            alertDialog.show();*/
         }
             else {
+            /*
             final AlertDialog.Builder builder1 =
                     new AlertDialog.Builder(this, R.style.AppCompatAlertDialogStyle);
             builder1.setTitle("Отправить заказ?");
@@ -329,17 +361,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
                 }
             });
             builder1.show();
-
-
-        }}
-        else {
-            Snackbar snackbar = Snackbar
-                    .make(coordinatorLayout, "Добавьте товар!", Snackbar.LENGTH_LONG);
-            snackbar.setActionTextColor(Color.YELLOW);
-            snackbar.show();
+*/
 
         }
-
                 return super.onOptionsItemSelected(item);
 
     }
@@ -393,6 +417,23 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
 
     }
 
+   /* class MyTask extends AsyncTask<Void, Void, Void> {
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
 
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                FTPService.downloadAndSaveFile("78.46.228.244", 21, "ftp_baltsilvercom_upl_files"
+                        , "ftp1btslr1j08c7a6fb4a0", "file_1.xml", new File(getFilesDir(), "file_2.xml"));
+            }
+            catch (Exception e){
+                Log.e("ta", e.getMessage());
+            }
+            return null;
+        }
+    }*/
 }

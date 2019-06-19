@@ -5,6 +5,7 @@ package info.androidhive.recyclerviewswipe.adapter;
  */
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,10 +16,13 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.io.File;
 import java.util.List;
 
 import info.androidhive.baltsilverapp.R;
+import info.androidhive.recyclerviewswipe.MainActivity;
 import info.androidhive.recyclerviewswipe.entity.Jewelry;
+import info.androidhive.recyclerviewswipe.service.FTPService;
 
 
 public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.MyViewHolder> {
@@ -36,7 +40,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.MyView
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView name, description, price;
+        public TextView name, description, price, barcode;
         public ImageView thumbnail;
         public RelativeLayout viewBackground, viewForeground;
 
@@ -46,6 +50,8 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.MyView
             description = view.findViewById(R.id.description);
             price = view.findViewById(R.id.price);
             thumbnail = view.findViewById(R.id.thumbnail);
+            barcode = view.findViewById(R.id.barcode);
+
             viewBackground = view.findViewById(R.id.view_background);
             viewForeground = view.findViewById(R.id.view_foreground);
         }
@@ -80,18 +86,64 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.MyView
     public void onBindViewHolder(MyViewHolder holder, final int position) {
         final Jewelry item = cartList.get(position);
         holder.name.setText(item.getArticle());
-        holder.description.setText(item.getDescription());
-        String price = item.getCost() + " р";
+        holder.description.setText(item.getDescription() + " Вес: " + item.getWeight() + " гр.");
+        holder.barcode.setText(item.getBarCode());
+        String price = item.getCost()*MainActivity.priceMultiply.intValue() + " р";
         if(item.getDiscount() > 0 )
             price += "(скидка "+  (100-((int) Math.round(item.getDiscount()*100))) + "%)";
 
          holder.price.setText(price);
 
         holder.bind(position, listener);
+        try {
+            //new MyTask().execute(new NewType(holder, item));
+            Glide.with(context)
+                    .load(R.drawable.small_logo)
+                    .into(holder.thumbnail);
+        }
+        catch (Exception e){
 
-        Glide.with(context)
-                .load("http://www.baltsilver.com/node_model_img?w=300&h=300&mode=scale&zoom=1&file=%D0%BA210038.jpg")
-                .into(holder.thumbnail);
+        }
+
+    }
+
+    class NewType{
+        NewType(MyViewHolder holder, Jewelry item){
+            this.holder = holder;
+            this.item = item;
+        }
+        MyViewHolder holder;
+        Jewelry item;
+    }
+
+    class MyTask extends AsyncTask<NewType, Void, String> {
+
+        MyViewHolder holder;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(NewType... params) {
+            this.holder = params[0].holder;
+            try {
+                 FTPService.downloadAndSaveFile("78.46.228.244", 21, "ftp_baltsilvercom_upl_files",
+                        "ftp1btslr1j08c7a6fb4a0","2.jpg", new File(context.getFilesDir(),"2.jpg"));
+            return context.getFilesDir()+"2.jpg";
+            }
+            catch (Exception e){
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String filePath) {
+            Glide.with(context)
+                    .load(filePath)
+                    .into(holder.thumbnail);
+            super.onPostExecute(filePath);
+        }
     }
 
     @Override
