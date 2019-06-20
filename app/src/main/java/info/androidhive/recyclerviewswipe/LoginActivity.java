@@ -82,8 +82,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onStart();
         SharedPreferences mySharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
         if (mySharedPreferences.contains("login") && mySharedPreferences.contains("password")){
+            mLogin = mySharedPreferences.getString("login","");
+            mPassword = mySharedPreferences.getString("password","");
             progressBar.setVisibility(View.VISIBLE);
-            attemptLogin(mySharedPreferences.getString("login",""), mySharedPreferences.getString("password",""));
+            attemptLogin(mLogin, mPassword);
         }
     }
 
