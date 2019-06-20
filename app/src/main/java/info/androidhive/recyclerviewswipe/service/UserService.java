@@ -24,6 +24,7 @@ import info.androidhive.recyclerviewswipe.entity.Jewelry;
 import info.androidhive.recyclerviewswipe.entity.Login;
 import info.androidhive.recyclerviewswipe.entity.Order;
 import info.androidhive.recyclerviewswipe.entity.User;
+import timber.log.Timber;
 
 /**
  * Created by Занятия on 08.12.2017.
@@ -36,7 +37,7 @@ public class UserService implements IUserService {
         SharedPreferences mySharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
         String plainCredentials=mySharedPreferences.getString("login", "")+":"
                 + mySharedPreferences.getString("password", "");
-        Log.i("LOG", plainCredentials);
+        Timber.i(plainCredentials);
         String kek = "qwe:qwe";
 
         String base64Credentials = new String(Base64.encodeBytes(plainCredentials.getBytes()));
@@ -63,6 +64,8 @@ public class UserService implements IUserService {
     }
 
     public String AddUser(String username, String password, Boolean enabled){
+        Timber.i("AddUser: "+ username+ " "+ password+ " "+ enabled);
+
         try {
 
             RestTemplate restTemplate = getRestTemplate();
@@ -78,6 +81,7 @@ public class UserService implements IUserService {
         }
 
         catch (HttpClientErrorException e) {
+            Timber.e("AddUser "+ e.getMessage());
             System.out.println(e.getStatusCode());
             System.out.println(e.getResponseBodyAsString());
             return e.getStatusCode().toString();
@@ -86,6 +90,7 @@ public class UserService implements IUserService {
     }
 
     public User getUser(String barCode, Context context){
+        Timber.i("getUser: "+ barCode);
 
             System.out.println("\nTesting getUser API----------");
             RestTemplate restTemplate = getRestTemplate();
@@ -99,6 +104,8 @@ public class UserService implements IUserService {
         }
 
     public Boolean login(Login login, Context context ){
+        Timber.i("login: "+ login);
+
         try {
 
             RestTemplate restTemplate = getRestTemplate();
@@ -112,12 +119,14 @@ public class UserService implements IUserService {
         }
 
         catch (HttpClientErrorException e) {
+            Timber.e("login "+ e.getMessage());
             System.out.println(e.getStatusCode());
             System.out.println(e.getResponseBodyAsString());
             return false;
         }
     }
     public Jewelry getJewelry(String barCode, Context context){
+        Timber.i("getJewelry: "+ barCode);
 
         RestTemplate restTemplate = getRestTemplate();
 
@@ -130,6 +139,7 @@ public class UserService implements IUserService {
     }
 
     public HttpStatus sendOrder(List<Jewelry> jewelries, String user, Context context){
+        Timber.i("sendOrder: "+ jewelries+" "+ user+ " ");
         try {
             Order order = new Order(jewelries,user);
             RestTemplate restTemplate = getRestTemplate();
@@ -143,6 +153,7 @@ public class UserService implements IUserService {
         }
 
         catch (HttpClientErrorException e) {
+            Timber.e("sendOrder "+ e.getMessage());
             System.out.println(e.getStatusCode());
             System.out.println(e.getResponseBodyAsString());
             return e.getStatusCode();

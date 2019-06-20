@@ -49,6 +49,7 @@ import info.androidhive.recyclerviewswipe.service.FTPService;
 import info.androidhive.recyclerviewswipe.service.IUserService;
 import info.androidhive.recyclerviewswipe.service.UserService;
 import info.androidhive.recyclerviewswipe.service.UserServiceXML;
+import timber.log.Timber;
 
 
 public class MainActivity extends AppCompatActivity implements RecyclerItemTouchHelper.RecyclerItemTouchHelperListener {
@@ -82,11 +83,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         LayoutInflater li = LayoutInflater.from(getApplicationContext());
         promptsView = li.inflate(R.layout.prompt, null);
         setUser();
-        userServiceXML = new UserServiceXML(this);
+        userServiceXML = MyApplication.getUserServiceXML();
         disc = new Double(0);
         recyclerView = findViewById(R.id.recycler_view);
         coordinatorLayout = findViewById(R.id.coordinator_layout);
@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
                                         mAdapter.notifyDataSetChanged();}
                                 }
                                 catch (NumberFormatException e){
+                                    Timber.e("setDiscount "+ e.getMessage());
 
                                 }
 
@@ -208,19 +209,21 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
 
                 if (result != null && result.getContents().length()> 12) {
                     if (result.getContents() != null) {
-                  Log.i("TAG", result.getContents());
+                  Timber.i("Scan result: "+result.getContents());
                       Jewelry newJewelry = userServiceXML.findJewelry(result.getContents());
                       if(newJewelry!=null) {
-                          cartList.add(newJewelry);
+                          cartList.add(0, newJewelry);
                           mAdapter.notifyDataSetChanged();
                       }
                       else {
-                      Snackbar snackbar = Snackbar
+                          Timber.i("Scan result: Изделие не найдено!");
+                          Snackbar snackbar = Snackbar
                               .make(coordinatorLayout, " Изделие не найдено!", Snackbar.LENGTH_SHORT);
                       snackbar.setActionTextColor(Color.YELLOW);
                       snackbar.show();
                   }}
                     else{
+                        Timber.i("Scan result: No scan data received!");
                         Toast toast = Toast.makeText(getApplicationContext(),
                                 "No scan data received!", Toast.LENGTH_SHORT);
                         toast.show();
@@ -416,24 +419,4 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
         builder1.show();
 
     }
-
-   /* class MyTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                FTPService.downloadAndSaveFile("78.46.228.244", 21, "ftp_baltsilvercom_upl_files"
-                        , "ftp1btslr1j08c7a6fb4a0", "file_1.xml", new File(getFilesDir(), "file_2.xml"));
-            }
-            catch (Exception e){
-                Log.e("ta", e.getMessage());
-            }
-            return null;
-        }
-    }*/
 }

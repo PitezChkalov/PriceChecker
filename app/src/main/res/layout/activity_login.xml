@@ -93,6 +93,7 @@
         android:onClick="Reg"
         android:text="Регистрация"
         android:textSize="8sp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.849"
         app:layout_constraintLeft_toLeftOf="parent"

@@ -1,26 +1,50 @@
 package info.androidhive.recyclerviewswipe.service;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import info.androidhive.baltsilverapp.R;
+import info.androidhive.recyclerviewswipe.MyApplication;
 import info.androidhive.recyclerviewswipe.entity.Jewelry;
+import timber.log.Timber;
 
-public class UserServiceXML {
+public class UserServiceXML implements FTPDownloadCallback {
 
-    public UserServiceXML(Context context){
-        parseXML(context);
+    public UserServiceXML(){
+        FTPService ftpService = new FTPService();
+        ftpService.updateBase(this);
     }
 
     private List<Jewelry> jewelries;
 
-    private void parseXML(Context context) {
-        XmlPullParser parser = context.getResources().getXml(R.xml.file_2);
+    private void parseXML() {
+        XmlPullParserFactory factory = null;
+        XmlPullParser parser = null;
+        try {
+            factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            parser = factory.newPullParser();
+            File file = new File(MyApplication.appPath+ "/file_2.xml");
+            InputStream fis = new FileInputStream(file);
+            parser.setInput(fis, "UTF-8");
+        } catch (XmlPullParserException|FileNotFoundException e) {
+            Timber.e("parseXML error "+ e.getMessage());
+        }
+
+
         List<Jewelry> jewelries = new ArrayList<>();
         // продолжаем, пока не достигнем конца документа
         try {
@@ -41,7 +65,7 @@ public class UserServiceXML {
 
         }
     catch (Exception e){
-        Log.e("EXCEPTION", e.getMessage());
+        Timber.e("ParseXML "+ e.getMessage());
     }
   this.jewelries = jewelries;
 }
@@ -53,4 +77,9 @@ public Jewelry findJewelry(String barCode){
         }
         return null;
 }
+
+    @Override
+    public void complete() {
+     parseXML();
+    }
 }

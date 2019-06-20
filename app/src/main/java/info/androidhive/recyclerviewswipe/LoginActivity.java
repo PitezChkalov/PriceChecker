@@ -18,6 +18,7 @@ import info.androidhive.baltsilverapp.R;
 import info.androidhive.recyclerviewswipe.entity.Login;
 import info.androidhive.recyclerviewswipe.service.IUserService;
 import info.androidhive.recyclerviewswipe.service.UserService;
+import timber.log.Timber;
 
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -44,7 +45,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         EnterButton.setOnClickListener(this);
         RegButton = (Button) findViewById(R.id.imageButton6);
         RegButton.setOnClickListener(this);
-
 
 
     }

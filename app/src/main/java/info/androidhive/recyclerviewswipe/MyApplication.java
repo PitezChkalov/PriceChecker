@@ -7,12 +7,21 @@ package info.androidhive.recyclerviewswipe;
 import android.app.Application;
 import android.text.TextUtils;
 
+import com.android.volley.BuildConfig;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
+import info.androidhive.recyclerviewswipe.service.FTPService;
+import info.androidhive.recyclerviewswipe.service.UserServiceXML;
+import info.androidhive.recyclerviewswipe.timber.DebugTree;
+import info.androidhive.recyclerviewswipe.timber.FileTree;
+import info.androidhive.recyclerviewswipe.timber.ReleaseTree;
+import timber.log.Timber;
+
 public class MyApplication extends Application {
 
+    public static String appPath;
     public static final String TAG = MyApplication.class
             .getSimpleName();
 
@@ -20,10 +29,28 @@ public class MyApplication extends Application {
 
     private static MyApplication mInstance;
 
+    private static UserServiceXML userServiceXML;
+
+
+    public static UserServiceXML getUserServiceXML() {
+        if (userServiceXML == null) {
+            userServiceXML = new UserServiceXML();
+        }
+         return userServiceXML;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         mInstance = this;
+        appPath = getApplicationContext().getFilesDir().getAbsolutePath();
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new DebugTree());
+            Timber.plant(new FileTree());
+        } else {
+            Timber.plant(new ReleaseTree());
+            Timber.plant(new FileTree());
+        }
     }
 
     public static synchronized MyApplication getInstance() {
