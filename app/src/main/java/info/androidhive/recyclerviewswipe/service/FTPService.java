@@ -3,6 +3,7 @@ package info.androidhive.recyclerviewswipe.service;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -78,6 +79,7 @@ public class FTPService {
             }
             catch (Exception e){
                 Timber.e("Update base error: "+ e.getMessage());
+                MyApplication.getInstance().makeToast("Ошибка при обновлении базы!", Toast.LENGTH_LONG);
             }
             return null;
         }

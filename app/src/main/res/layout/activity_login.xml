@@ -5,7 +5,6 @@
     style="@style/AppTheme.NoActionBar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
     android:orientation="vertical"
     tools:context=".LoginActivity">
 
@@ -90,6 +89,7 @@
         android:layout_marginTop="48dp"
         android:layout_marginRight="8dp"
         android:layout_marginBottom="8dp"
+        android:elevation="8dp"
         android:onClick="Reg"
         android:text="Регистрация"
         android:textSize="8sp"

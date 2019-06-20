@@ -3,6 +3,7 @@ package info.androidhive.recyclerviewswipe.service;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -66,9 +67,11 @@ public class UserServiceXML implements FTPDownloadCallback {
         }
     catch (Exception e){
         Timber.e("ParseXML "+ e.getMessage());
+        MyApplication.getInstance().makeToast("Ошибка при обновлении базы!", Toast.LENGTH_LONG);
     }
   this.jewelries = jewelries;
-}
+        MyApplication.getInstance().makeToast("База обновлена успешно!", Toast.LENGTH_LONG);
+    }
 
 public Jewelry findJewelry(String barCode){
         for(Jewelry jewelry:jewelries){
@@ -80,6 +83,6 @@ public Jewelry findJewelry(String barCode){
 
     @Override
     public void complete() {
-     parseXML();
+        parseXML();
     }
 }

@@ -6,6 +6,7 @@ package info.androidhive.recyclerviewswipe;
 
 import android.app.Application;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.android.volley.BuildConfig;
 import com.android.volley.Request;
@@ -63,6 +64,12 @@ public class MyApplication extends Application {
         }
 
         return mRequestQueue;
+    }
+
+    public void makeToast(String text, int longTime){
+        Toast toast = Toast.makeText(getApplicationContext(),
+                text, longTime);
+        toast.show();
     }
 
     public <T> void addToRequestQueue(Request<T> req, String tag) {

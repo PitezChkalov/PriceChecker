@@ -17,13 +17,13 @@ import info.androidhive.recyclerviewswipe.entity.User;
  */
 
 public interface IUserService {
-    public String AddUser(String username, String password, Boolean enabled);
+     String AddUser(String username, String password, Boolean enabled);
 
-    public User getUser(String barCode, Context context);
+     User getUser(String barCode, Context context);
 
-    public Boolean login(Login login, Context context);
+    void login(Login login, UserLoginCallback userLoginCallback);
 
-    public Jewelry getJewelry(String barCode, Context context);
+    Jewelry getJewelry(String barCode, Context context);
 
-    public HttpStatus sendOrder(List<Jewelry> jewelries, String user, Context context);
+    HttpStatus sendOrder(List<Jewelry> jewelries, String user, Context context);
 }

@@ -1,5 +1,9 @@
 package info.androidhive.recyclerviewswipe.entity;
 
+import android.content.Context;
+
+import info.androidhive.recyclerviewswipe.service.UserLoginCallback;
+
 public class Login {
     private String username;
     private String password;

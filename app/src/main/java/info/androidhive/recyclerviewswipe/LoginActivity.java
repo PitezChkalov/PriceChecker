@@ -3,25 +3,27 @@ package info.androidhive.recyclerviewswipe;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import org.springframework.http.HttpStatus;
+
 import info.androidhive.baltsilverapp.R;
 import info.androidhive.recyclerviewswipe.entity.Login;
+import info.androidhive.recyclerviewswipe.service.DialogService;
 import info.androidhive.recyclerviewswipe.service.IUserService;
+import info.androidhive.recyclerviewswipe.service.UserLoginCallback;
 import info.androidhive.recyclerviewswipe.service.UserService;
 import timber.log.Timber;
 
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener, UserLoginCallback {
 
     IUserService userService = new UserService();
     EditText login;
@@ -64,8 +66,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                             .permitAll().build();
                     StrictMode.setThreadPolicy(policy);
+                    attemptLogin(mLogin, mPassword);
 
-                    new UserLogin().execute(new Login(mLogin, mPassword));
                     progressBar.setVisibility(View.VISIBLE);
                 }
                 break;
@@ -75,47 +77,45 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 break;
         }
     }
+
     protected void onStart() {
         super.onStart();
         SharedPreferences mySharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
         if (mySharedPreferences.contains("login") && mySharedPreferences.contains("password")){
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            progressBar.setVisibility(View.VISIBLE);
+            attemptLogin(mySharedPreferences.getString("login",""), mySharedPreferences.getString("password",""));
         }
     }
 
+    private void attemptLogin(String login, String password){
+        userService.login(new Login(login, password), this);
+    }
 
-    public void attemptLogin(Boolean user) {
-        if (user) {
+    public void loginResult(HttpStatus result) {
+        Timber.i("Login result: "+ result);
 
+        if (result == HttpStatus.OK) {
             SharedPreferences mySharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = mySharedPreferences.edit();
             editor.putString("login", mLogin);
             editor.putString("password", mPassword);
             editor.apply();
+
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
-        }else {
-        Toast toast = Toast.makeText(getApplicationContext(),
-                "Неверный логин или пароль", Toast.LENGTH_SHORT);
-        toast.show();
+        }else if(result == HttpStatus.NOT_FOUND) {
+            MyApplication.getInstance().makeToast("Неверный логин или пароль", Toast.LENGTH_LONG);
+        }
+    else if(result == HttpStatus.FORBIDDEN){
+            DialogService.createSubscribeDialog(this);
+        }
+         progressBar.setVisibility(View.GONE);
     }
 
-    }
-
-    public class UserLogin extends AsyncTask<Login, Void, Boolean> {
-        IUserService userService = new UserService();
-
-        @Override
-        protected Boolean doInBackground(Login... params) {
-          if(userService.login(params[0], getApplicationContext()))
-            return true; else  return false;
-        }
-        @Override
-        protected void onPostExecute(Boolean user) {
-            progressBar.setVisibility(View.INVISIBLE);
-            attemptLogin(user);
-        }
+    @Override
+    public void complete(HttpStatus result) {
+        progressBar.setVisibility(View.INVISIBLE);
+        loginResult(result);
     }
 
 }

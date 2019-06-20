@@ -40,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import info.androidhive.baltsilverapp.R;
 import info.androidhive.recyclerviewswipe.adapter.CartListAdapter;
@@ -132,6 +133,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
 
         // attaching the touch helper to recycler view
         new ItemTouchHelper(itemTouchHelperCallback1).attachToRecyclerView(recyclerView);
+
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
+
     }
   public  void setDiscount(final int position){
       LayoutInflater li = LayoutInflater.from(context);
@@ -277,98 +281,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemTouch
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-        if(item.getItemId()==R.id.sale) {
-
-            AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-            mBuilder.setTitle("Выберите тип цены");
-            String[] listItems = getResources().getStringArray(R.array.chose_items);
-            int kkk = 0;
-            if(priceMultiply == 2.2)
-                kkk = 1;
-            mBuilder.setSingleChoiceItems(listItems, kkk, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                  if(i == 0){
-                      priceMultiply = 1.0;
-                      mAdapter.notifyDataSetChanged();
-                  }
-                  else {
-                      priceMultiply = 2.2;
-                      mAdapter.notifyDataSetChanged();
-                  }
-                    dialogInterface.dismiss();
-                }
-            });
-
-            AlertDialog mDialog = mBuilder.create();
-            mDialog.show();
-            /*LayoutInflater li = LayoutInflater.from(context);
-            View qwe = li.inflate(R.layout.prompt, null);
-            AlertDialog.Builder builder =
-                    new AlertDialog.Builder(context, R.style.AppCompatAlertDialogStyle);
-            builder.setView(qwe);
-            builder.setSingleChoiceItems()
-            userInput = (EditText) qwe.findViewById(R.id.input_text);
-
-            builder.setPositiveButton("Применить",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            //Вводим текст и отображаем в строке ввода на основном экране:
-
-                            try {
-                                disc = (Double.parseDouble(userInput.getText().toString()));
-                                if (disc > 0 && disc < 100) {
-
-                                    mAdapter.setGlobalDiscount(disc / 100);
-                                    mAdapter.notifyDataSetChanged();
-                                }
-                            } catch (NumberFormatException e) {
-
-                            }
-
-                        }
-                    })
-                    .setNegativeButton("Отмена",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();*/
-        }
-            else {
-            /*
-            final AlertDialog.Builder builder1 =
-                    new AlertDialog.Builder(this, R.style.AppCompatAlertDialogStyle);
-            builder1.setTitle("Отправить заказ?");
-            builder1.setMessage("Общая стоимость:"+ mAdapter.getTotalCost() + "р.");
-            builder1.setPositiveButton("Да", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    progressBar.setVisibility(ProgressBar.VISIBLE);
-                     new SendOrder().execute();
-                }
-            });
-            builder1.setNegativeButton("Это была ошибка", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-
-                }
-            });
-            builder1.show();
-*/
-
-        }
-                return super.onOptionsItemSelected(item);
-
     }
 
 

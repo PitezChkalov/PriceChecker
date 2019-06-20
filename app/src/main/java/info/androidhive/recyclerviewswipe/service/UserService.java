@@ -3,6 +3,7 @@ package info.androidhive.recyclerviewswipe.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import org.springframework.http.HttpEntity;
@@ -32,6 +33,7 @@ import timber.log.Timber;
 
 public class UserService implements IUserService {
 
+    private static final String server = "https://baltsilver.herokuapp.com";
     private static HttpHeaders getHeaders(Context context){
 
         SharedPreferences mySharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
@@ -74,7 +76,7 @@ public class UserService implements IUserService {
             Object user = new User(username, password, true);
             HttpEntity<Object> request = new HttpEntity<Object>(user);
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://baltsilverapp.herokuapp.com/" + "/user/add", request, String.class);
+                    server + "/user/add", request, String.class);
             HttpStatus status = response.getStatusCode();
             if (status == HttpStatus.CREATED)
                 return "OK";
@@ -96,14 +98,14 @@ public class UserService implements IUserService {
             RestTemplate restTemplate = getRestTemplate();
 
             HttpEntity<String> request = new HttpEntity<String>(getHeaders(context));
-            ResponseEntity<User> response = restTemplate.exchange("https://baltsilverapp.herokuapp.com/" +
+            ResponseEntity<User> response = restTemplate.exchange(server +
                     "/user/user/"+ barCode, HttpMethod.GET, request, User.class);
             User user = response.getBody();
             System.out.println(user);
             return user;
         }
 
-    public Boolean login(Login login, Context context ){
+    private HttpStatus attemptLogin(Login login){
         Timber.i("login: "+ login);
 
         try {
@@ -112,17 +114,18 @@ public class UserService implements IUserService {
             System.out.println("\nTesting create User API----------");
 
             HttpEntity<Object> request = new HttpEntity<Object>(login);
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://baltsilverapp.herokuapp.com/" + "/user/login", request, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    server + "/user/login", HttpMethod.POST,  request, String.class);
+            HttpHeaders q = response.getHeaders();
             HttpStatus status = response.getStatusCode();
-                return true;
+                return response.getStatusCode();
         }
 
         catch (HttpClientErrorException e) {
             Timber.e("login "+ e.getMessage());
             System.out.println(e.getStatusCode());
             System.out.println(e.getResponseBodyAsString());
-            return false;
+            return e.getStatusCode();
         }
     }
     public Jewelry getJewelry(String barCode, Context context){
@@ -131,7 +134,7 @@ public class UserService implements IUserService {
         RestTemplate restTemplate = getRestTemplate();
 
         HttpEntity<String> request = new HttpEntity<String>(getHeaders(context));
-        ResponseEntity<Jewelry> response = restTemplate.exchange("https://baltsilverapp.herokuapp.com/" +
+        ResponseEntity<Jewelry> response = restTemplate.exchange(server +
                 "/jewelry/get/"+ barCode, HttpMethod.GET, request, Jewelry.class);
         Jewelry jewelry = response.getBody();
         System.out.println(jewelry);
@@ -147,7 +150,7 @@ public class UserService implements IUserService {
 
             HttpEntity<Object> request = new HttpEntity<Object>(order, getHeaders(context));
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://baltsilverapp.herokuapp.com/" + "/jewelry/sendOrder", request, String.class);
+                    server + "/jewelry/sendOrder", request, String.class);
             HttpStatus status = response.getStatusCode();
             return status;
         }
@@ -157,6 +160,33 @@ public class UserService implements IUserService {
             System.out.println(e.getStatusCode());
             System.out.println(e.getResponseBodyAsString());
             return e.getStatusCode();
+        }
+    }
+
+    public void login(Login login, UserLoginCallback userLoginCallback){
+        new UserLoginAsync().execute(new Credentials(login, userLoginCallback));
+    }
+
+    private class Credentials{
+        Login login;
+        UserLoginCallback userLoginCallback;
+        public  Credentials(Login login, UserLoginCallback userLoginCallback){
+            this.login = login;
+            this.userLoginCallback = userLoginCallback;
+        }
+    }
+
+    private class UserLoginAsync extends AsyncTask<Credentials, Void, HttpStatus> {
+        UserLoginCallback userLoginCallback;
+
+        @Override
+        protected HttpStatus doInBackground(Credentials... params) {
+            this.userLoginCallback = params[0].userLoginCallback;
+            return attemptLogin(params[0].login);
+        }
+        @Override
+        protected void onPostExecute(HttpStatus result) {
+         userLoginCallback.complete(result);
         }
     }
 
